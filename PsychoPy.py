@@ -1,3 +1,8 @@
+### required dependencies ###
+# pip install pygame_widgets
+# pip install pygame
+# pip install openpyxl
+
 import pygame_widgets
 import pygame
 from pygame_widgets.slider import Slider
@@ -5,6 +10,7 @@ from pygame_widgets.textbox import TextBox
 import random
 import time
 import os
+import openpyxl
 from typing import List, Dict
 
 
@@ -29,6 +35,7 @@ IMGAGE_SCALING = (5,5)
 NUM_FOLDER_X_TRIALS = [2,1,1,1]
 NUM_TRIALS = sum(NUM_FOLDER_X_TRIALS)
 ALLOW_DUPLICATES = False
+RESULTS_FILE = 'results.xlsx'
 
 # font constants
 DARK_TEAL = (21, 102, 105)
@@ -134,8 +141,16 @@ def initialize():
             
             selected_trials.append((folder_name, temp_trial))
 
-    print(selected_trials)
-            
+    # create results file if not already made
+    dir_contents = os.listdir()
+    if dir_contents.count(RESULTS_FILE) == 0:
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+        worksheet.title = "summary"
+        headers = ["Participant ID", "Avg Reaction Experimental", "Accuracy Experimental", "Avg Reaction Control", "Accuracy Control"]
+        worksheet.append(headers)
+        workbook.save(RESULTS_FILE)
+
 
 def thank_you():
     """
@@ -393,6 +408,13 @@ def clean_up():
     # display game stats
     average_reaction_time /= NUM_TRIALS
     print(f"Stats - Average Reaction Time: {average_reaction_time:.2f}s, Accuracy: {accuracy}/{trials_completed}")
+
+    # write data to xlsx file
+    workbook = openpyxl.load_workbook(RESULTS_FILE)
+    worksheet = workbook['summary']
+    data = ["", f"{average_reaction_time:.2f}s", f"{accuracy}/{trials_completed}", f"{average_reaction_time:.2f}s", f"{accuracy}/{trials_completed}"]
+    worksheet.append(data)
+    workbook.save(RESULTS_FILE)
     
     # kill pygame
     pygame.quit()
@@ -403,10 +425,10 @@ def main():
     overall structure for game.
     """
     initialize()
-    thank_you()
-    audio_tuning()
-    instructions()
-    run_trials()
+    #thank_you()
+    #audio_tuning()
+    #instructions()
+    #run_trials()
     clean_up()
 
 
