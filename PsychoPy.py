@@ -119,11 +119,10 @@ def initialize():
         
         # pull random trials from folder
         for _ in range(num_trials):
+            temp_trial = random.choice(folder_trials)
+
             if not ALLOW_DUPLICATES:
-                temp_trial = random.choice(folder_trials)
                 folder_trials.remove(temp_trial)
-            else:
-                temp_trial = random.choice(folder_trials)
             
             selected_trials.append((folder_name, temp_trial))
 
