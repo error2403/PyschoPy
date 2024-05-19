@@ -26,9 +26,9 @@ class Audio:
 
 # game constants
 IMGAGE_SCALING = (5,5)
-NUM_FOLDER_X_TRIALS = [1,1,1,1]
+NUM_FOLDER_X_TRIALS = [2,1,1,1]
 NUM_TRIALS = sum(NUM_FOLDER_X_TRIALS)
-ALLOW_DUPLICATES = True
+ALLOW_DUPLICATES = False
 
 # font constants
 DARK_TEAL = (21, 102, 105)
@@ -110,11 +110,24 @@ def initialize():
         break_dict = list(folder_dict.items())[0]
         folder_name = break_dict[0]
         folder_trials = break_dict[1]
+
+        # check if program is asking for more trials than are available
+        if not ALLOW_DUPLICATES:
+            if num_trials > len(folder_trials):
+                print(f"Program does not allow duplicates. Asking for {num_trials} trials when there are {len(folder_trials)} available in {folder_name}")
+                exit(10)
         
         # pull random trials from folder
         for _ in range(num_trials):
-            temp_trial = random.choice(folder_trials)
+            if not ALLOW_DUPLICATES:
+                temp_trial = random.choice(folder_trials)
+                folder_trials.remove(temp_trial)
+            else:
+                temp_trial = random.choice(folder_trials)
+            
             selected_trials.append((folder_name, temp_trial))
+
+    print(selected_trials)
             
 
 def thank_you():
@@ -269,7 +282,6 @@ def run_trials():
     for trial_num in range(NUM_TRIALS):
         # get next trial in list
         trial = selected_trials[trial_num]
-        print(trial)
 
         # load trial data
         trial_data = os.listdir(trial_directory + f"\\{trial[0]}\\{trial[1]}")
@@ -375,10 +387,10 @@ def main():
     overall structure for game.
     """
     initialize()
-    thank_you()
-    audio_tuning()
-    instructions()
-    run_trials()
+    #thank_you()
+    #audio_tuning()
+    #instructions()
+    #run_trials()
     clean_up()
 
 
