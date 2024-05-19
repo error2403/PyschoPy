@@ -34,6 +34,7 @@ ALLOW_DUPLICATES = False
 DARK_TEAL = (21, 102, 105)
 PINK = (255, 153, 153)
 GRAY = (128, 128, 128)
+WHITE = (255, 255, 255)
 FONT_SIZE = 132
 
 # stats
@@ -45,10 +46,11 @@ average_reaction_time = 0
 key_mapping: Dict[int, int] = {}
 screen: pygame.Surface
 screen_size: tuple = (int, int)
-img_1: pygame.Surface
-img_2: pygame.Surface
-img_3: pygame.Surface
-img_4: pygame.Surface
+text_1: pygame.Surface      # the number "1" that displays under trial images
+text_2: pygame.Surface      # the number "2" that displays under trial images
+text_3: pygame.Surface      # the number "3" that displays under trial images
+text_4: pygame.Surface      # the number "4" that displays under trial images
+hands: pygame.Surface       # the image of hands
 trial_directory: str
 all_trials: List[Dict[str, List[str]]] = []
 selected_trials: List[tuple] = []
@@ -63,7 +65,8 @@ def initialize():
     global key_mapping
     global screen
     global screen_size
-    global img_1, img_2, img_3, img_4
+    global text_1, text_2, text_3, text_4
+    global hands
     global trial_directory
     global all_trials
     global selected_trials
@@ -77,20 +80,25 @@ def initialize():
     screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
     pygame.display.set_caption("Audio-Visual Experiment")
     screen_size = pygame.display.get_window_size()
-    screen.fill((255,255,255))
+    screen.fill(WHITE)
 
     # create number fonts to go under images
     font_1 = pygame.font.SysFont('1', FONT_SIZE)
-    img_1 = font_1.render('1', True, DARK_TEAL)
+    text_1 = font_1.render('1', True, DARK_TEAL)
 
     font_2 = pygame.font.SysFont('2', FONT_SIZE)
-    img_2 = font_2.render('2', True, DARK_TEAL)
+    text_2 = font_2.render('2', True, DARK_TEAL)
 
     font_3 = pygame.font.SysFont('3', FONT_SIZE)
-    img_3 = font_3.render('3', True, DARK_TEAL)
+    text_3 = font_3.render('3', True, DARK_TEAL)
 
     font_4 = pygame.font.SysFont('4', FONT_SIZE)
-    img_4 = font_4.render('4', True, DARK_TEAL)
+    text_4 = font_4.render('4', True, DARK_TEAL)
+
+    # load hand image
+    hands = pygame.image.load("hands.jpg")
+    hands = pygame.transform.scale(hands, (screen_size[0]/IMGAGE_SCALING[0], screen_size[1]/IMGAGE_SCALING[1]))
+    hands.convert()
 
     # get directory
     game_directory = os.path.dirname(os.path.realpath(__file__))
@@ -145,7 +153,7 @@ def thank_you():
     text2 = font2.render('Press Space to continue', True, GRAY)
     text2_rect = text2.get_rect(center=(screen_size[0]/2, 5*screen_size[1]/6))
     
-    screen.fill((255,255,255))
+    screen.fill(WHITE)
     screen.blit(text, text_rect)
     screen.blit(text2, text2_rect)
     pygame.display.update()
@@ -161,7 +169,7 @@ def thank_you():
                 response = event.key
 
     # clear screen
-    screen.fill((255,255,255))
+    screen.fill(WHITE)
 
 
 def audio_tuning():
@@ -212,7 +220,7 @@ def audio_tuning():
             elif event.type == pygame.KEYDOWN:
                 response = event.key
 
-        screen.fill((255,255,255))
+        screen.fill(WHITE)
         screen.blit(text, text_rect)
         screen.blit(text2, text2_rect)
 
@@ -222,7 +230,7 @@ def audio_tuning():
         pygame.display.update()
 
     # clear screen
-    screen.fill((255,255,255))
+    screen.fill(WHITE)
     audio_player.stop()
 
 
@@ -243,7 +251,7 @@ def instructions():
     text2 = font2.render('Press Space to continue', True, GRAY)
     text2_rect = text2.get_rect(center=(screen_size[0]/2, 4*screen_size[1]/5))
     
-    screen.fill((255,255,255))
+    screen.fill(WHITE)
     screen.blit(text, text_rect)
     screen.blit(text2, text2_rect)
     pygame.display.update()
@@ -259,7 +267,7 @@ def instructions():
                 response = event.key
 
     # clear screen
-    screen.fill((255,255,255))
+    screen.fill(WHITE)
 
 
 def run_trials():
@@ -269,7 +277,8 @@ def run_trials():
     global key_mapping
     global screen
     global screen_size
-    global img_1, img_2, img_3, img_4
+    global text_1, text_2, text_3, text_4
+    global hands
     global trial_directory
     global selected_trials
     global accuracy
@@ -312,15 +321,16 @@ def run_trials():
             img.convert()
             converted_images.append(img)
 
+        screen.fill(WHITE)
         screen.blit(converted_images[0], (screen_size[0]/25, screen_size[1]/3))
         screen.blit(converted_images[1], (7*screen_size[0]/25, screen_size[1]/3))
         screen.blit(converted_images[2], (13*screen_size[0]/25, screen_size[1]/3))
         screen.blit(converted_images[3], (19*screen_size[0]/25, screen_size[1]/3))
 
-        screen.blit(img_1, (3.3*screen_size[0]/25, 1.75*screen_size[1]/3))
-        screen.blit(img_2, (9.3*screen_size[0]/25, 1.75*screen_size[1]/3))
-        screen.blit(img_3, (15.3*screen_size[0]/25, 1.75*screen_size[1]/3))
-        screen.blit(img_4, (21.3*screen_size[0]/25, 1.75*screen_size[1]/3))
+        screen.blit(text_1, (3.3*screen_size[0]/25, 1.75*screen_size[1]/3))
+        screen.blit(text_2, (9.3*screen_size[0]/25, 1.75*screen_size[1]/3))
+        screen.blit(text_3, (15.3*screen_size[0]/25, 1.75*screen_size[1]/3))
+        screen.blit(text_4, (21.3*screen_size[0]/25, 1.75*screen_size[1]/3))
 
         # display screen
         pygame.display.update()
@@ -361,6 +371,13 @@ def run_trials():
         # stop audio if still playing
         audio_player.stop()
 
+        # 2 second hand delay thing
+        screen.fill(WHITE)
+        hands_rect = hands.get_rect(center=(screen_size[0]/2, screen_size[1]/2))
+        screen.blit(hands, hands_rect)
+        pygame.display.update()
+        time.sleep(2)
+
 ## end loop for NUM_TRIALS
 
 
@@ -386,10 +403,10 @@ def main():
     overall structure for game.
     """
     initialize()
-    #thank_you()
-    #audio_tuning()
-    #instructions()
-    #run_trials()
+    thank_you()
+    audio_tuning()
+    instructions()
+    run_trials()
     clean_up()
 
 
