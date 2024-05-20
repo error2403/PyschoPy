@@ -62,6 +62,7 @@ trial_directory: str
 all_trials: List[Dict[str, List[str]]] = []
 selected_trials: List[tuple] = []
 audio_player = Audio()
+patient_id = "TAG"
 
 
 def initialize():
@@ -77,6 +78,7 @@ def initialize():
     global trial_directory
     global all_trials
     global selected_trials
+    global patient_id
 
     pygame.init()
 
@@ -140,6 +142,9 @@ def initialize():
                 folder_trials.remove(temp_trial)
             
             selected_trials.append((folder_name, temp_trial))
+
+    # randomize list
+    random.shuffle(selected_trials)
 
     # create results file if not already made
     dir_contents = os.listdir()
@@ -300,7 +305,22 @@ def run_trials():
     global trials_completed
     global average_reaction_time
     global audio_player
+    global patient_id
 
+    # set up patient result saving location
+    workbook = openpyxl.load_workbook(RESULTS_FILE)
+    worksheet = workbook['summary']
+
+    patient_id_num = 0
+    for row in worksheet.values:
+        patient_id_num += 1
+    patient_id += f"{patient_id_num}"
+    workbook.create_sheet(f"{patient_id}")
+
+    worksheet = workbook[f"{patient_id}"]
+    headers = ["Trial", "Reaction Time", "Accuracy"]
+    worksheet.append(headers)             
+        
     ## loop for NUM_TRIALS
     for trial_num in range(NUM_TRIALS):
         # get next trial in list
@@ -382,6 +402,8 @@ def run_trials():
 
         # display feedback
         print(f"Trial {trial} - Reaction Time: {reaction_time:.2f}s, {answer}")
+        data = [f"{trial}", f"{reaction_time:.2f}s", f"{answer}"]
+        worksheet.append(data)
 
         # stop audio if still playing
         audio_player.stop()
@@ -393,8 +415,8 @@ def run_trials():
         pygame.display.update()
         time.sleep(2)
 
-## end loop for NUM_TRIALS
-
+    ## end loop for NUM_TRIALS
+    workbook.save(RESULTS_FILE) 
 
 def clean_up():
     """
@@ -404,6 +426,7 @@ def clean_up():
     global average_reaction_time
     global accuracy
     global trials_completed
+    global patient_id
 
     # display game stats
     average_reaction_time /= NUM_TRIALS
@@ -412,7 +435,7 @@ def clean_up():
     # write data to xlsx file
     workbook = openpyxl.load_workbook(RESULTS_FILE)
     worksheet = workbook['summary']
-    data = ["", f"{average_reaction_time:.2f}s", f"{accuracy}/{trials_completed}", f"{average_reaction_time:.2f}s", f"{accuracy}/{trials_completed}"]
+    data = [f"{patient_id}", f"{average_reaction_time:.2f}s", f"{accuracy}/{trials_completed}", f"{average_reaction_time:.2f}s", f"{accuracy}/{trials_completed}"]
     worksheet.append(data)
     workbook.save(RESULTS_FILE)
     
@@ -425,10 +448,10 @@ def main():
     overall structure for game.
     """
     initialize()
-    #thank_you()
-    #audio_tuning()
-    #instructions()
-    #run_trials()
+    thank_you()
+    audio_tuning()
+    instructions()
+    run_trials()
     clean_up()
 
 
