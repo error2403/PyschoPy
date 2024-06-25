@@ -165,17 +165,12 @@ def thank_you():
     global screen
 
     # display thank you screen
-    font = pygame.font.SysFont(None, FONT_SIZE)
-    text = font.render('Thank You', True, PINK)
-    text_rect = text.get_rect(center=(screen_size[0]/2, screen_size[1]/2))
-
-    font2 = pygame.font.SysFont(None, int(FONT_SIZE/2))
-    text2 = font2.render('Press Space to continue', True, GRAY)
-    text2_rect = text2.get_rect(center=(screen_size[0]/2, 5*screen_size[1]/6))
+    img = pygame.image.load("thank_you.png")
+    img = pygame.transform.scale(img, (screen_size[0], screen_size[1]))
+    img.convert()
     
     screen.fill(WHITE)
-    screen.blit(text, text_rect)
-    screen.blit(text2, text2_rect)
+    screen.blit(img, (0,0))
     pygame.display.update()
 
     # wait for user to press space
@@ -263,17 +258,12 @@ def instructions():
     global screen
 
     # display instructions screen
-    font = pygame.font.SysFont(None, FONT_SIZE)
-    text = font.render('Instructions', True, PINK)
-    text_rect = text.get_rect(center=(screen_size[0]/2, screen_size[1]/2))
-
-    font2 = pygame.font.SysFont(None, int(FONT_SIZE/2))
-    text2 = font2.render('Press Space to continue', True, GRAY)
-    text2_rect = text2.get_rect(center=(screen_size[0]/2, 4*screen_size[1]/5))
+    img = pygame.image.load("instructions.png")
+    img = pygame.transform.scale(img, (screen_size[0], screen_size[1]))
+    img.convert()
     
     screen.fill(WHITE)
-    screen.blit(text, text_rect)
-    screen.blit(text2, text2_rect)
+    screen.blit(img, (0,0))
     pygame.display.update()
 
     # wait for user to press space
