@@ -1,10 +1,12 @@
 ### required dependencies ###
-# pip install pygame_widgets
 # pip install pygame
+# pip install pygame_widgets
 # pip install openpyxl
 
-import pygame_widgets
+# python version 3.11.9
+
 import pygame
+import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 import random
@@ -31,6 +33,7 @@ class Audio:
 
 
 # game constants
+IS_TWO_OPTIONS = False      # this swaps between 2 option trials and 4 option trials
 IMGAGE_SCALING = (5,5)
 NUM_FOLDER_X_TRIALS = [2,1,1,1]
 NUM_TRIALS = sum(NUM_FOLDER_X_TRIALS)
@@ -113,7 +116,11 @@ def initialize():
     game_directory = os.path.dirname(os.path.realpath(__file__))
 
     # load trials
-    trial_directory = game_directory + "\\trials"
+    if IS_TWO_OPTIONS:
+        trial_directory = game_directory + "\\2_option_trials"
+    else:
+        trial_directory = game_directory + "\\4_option_trials"
+
     trial_folders = os.listdir(trial_directory)
 
     for folder in trial_folders:
