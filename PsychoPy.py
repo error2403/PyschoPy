@@ -33,18 +33,19 @@ class Audio:
 
 
 # game constants
-IS_TWO_OPTIONS = False      # this swaps between 2 option trials and 4 option trials
+IS_TWO_OPTIONS = False     # this swaps between 2 option trials and 4 option trials
 
-# NUM_FOLDER_X_TRIALS ex: [12, 7] --> pull 12 trials from first folder and 7 trials from second folder
+    # NUM_FOLDER_X_TRIALS ex: [12, 7] --> pull 12 trials from first folder and 7 trials from second folder
 if IS_TWO_OPTIONS:
-    NUM_FOLDER_X_TRIALS = [31,13] # folder setup for 2 option
+    NUM_FOLDER_X_TRIALS = [2,1]
+    RESULTS_FILE = 'results_2_option.xlsx'
 else:
-    NUM_FOLDER_X_TRIALS = [2,1,1,1] # folder setup for 4 option
+    NUM_FOLDER_X_TRIALS = [2,1,1,1]
+    RESULTS_FILE = 'results_4_option.xlsx'
 
 IMGAGE_SCALING = (5,5)
 NUM_TRIALS = sum(NUM_FOLDER_X_TRIALS)
 ALLOW_DUPLICATES = False
-RESULTS_FILE = 'results.xlsx'
 
 # font constants
 DARK_TEAL = (21, 102, 105)
@@ -66,6 +67,8 @@ text_1: pygame.Surface      # the number "1" that displays under trial images
 text_2: pygame.Surface      # the number "2" that displays under trial images
 text_3: pygame.Surface      # the number "3" that displays under trial images
 text_4: pygame.Surface      # the number "4" that displays under trial images
+text_L: pygame.Surface      # the number "L" that displays under trial images
+text_R: pygame.Surface      # the number "R" that displays under trial images
 hands: pygame.Surface       # the image of hands
 trial_directory: str
 all_trials: List[Dict[str, List[str]]] = []
@@ -82,7 +85,7 @@ def initialize():
     global key_mapping
     global screen
     global screen_size
-    global text_1, text_2, text_3, text_4
+    global text_1, text_2, text_3, text_4, text_L, text_R
     global hands
     global trial_directory
     global all_trials
@@ -92,7 +95,10 @@ def initialize():
     pygame.init()
 
     # configure keys
-    key_mapping = {pygame.K_1: 1, pygame.K_2: 2, pygame.K_3: 3, pygame.K_4: 4}
+    if IS_TWO_OPTIONS:
+        key_mapping = {pygame.K_LEFT: 1, pygame.K_RIGHT: 2}
+    else:
+        key_mapping = {pygame.K_1: 1, pygame.K_2: 2, pygame.K_3: 3, pygame.K_4: 4}
 
     # set up screen
     screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
@@ -112,6 +118,12 @@ def initialize():
 
     font_4 = pygame.font.SysFont('4', FONT_SIZE)
     text_4 = font_4.render('4', True, DARK_TEAL)
+
+    font_L = pygame.font.SysFont('L', FONT_SIZE)
+    text_L = font_L.render('L', True, DARK_TEAL)
+
+    font_R = pygame.font.SysFont('R', FONT_SIZE)
+    text_R = font_R.render('R', True, DARK_TEAL)
 
     # load hand image
     hands = pygame.image.load("hands.jpg")
@@ -308,7 +320,129 @@ def run_trials():
 
 
 def run_2_option_trials():
-    pass
+    """
+    runs the PsychoPy 2 option test trials.
+    """
+    # load global variables
+    global key_mapping
+    global screen
+    global screen_size
+    global text_L, text_R
+    global hands
+    global trial_directory
+    global selected_trials
+    global accuracy
+    global trials_completed
+    global average_reaction_time
+    global audio_player
+    global patient_id
+
+    # set up patient result saving location
+    workbook = openpyxl.load_workbook(RESULTS_FILE)
+    worksheet = workbook['summary']
+
+    patient_id_num = 0
+    for row in worksheet.values:
+        patient_id_num += 1
+    patient_id += f"{patient_id_num}"
+    workbook.create_sheet(f"{patient_id}")
+
+    worksheet = workbook[f"{patient_id}"]
+    headers = ["Trial", "Reaction Time", "Accuracy"]
+    worksheet.append(headers)             
+        
+    ## loop for NUM_TRIALS
+    for trial_num in range(NUM_TRIALS):
+        # get next trial in list
+        trial = selected_trials[trial_num]
+
+        # load trial data
+        trial_data = os.listdir(trial_directory + f"\\{trial[0]}\\{trial[1]}")
+        images: List[str] = []
+        audio: List[str] = []
+        other: List[str] = []
+        for file in trial_data:
+            if file.endswith('.jpg') or file.endswith('.png'):
+                images.append(file)
+            elif file.endswith('.wav'):
+                audio.append(file)
+            else:
+                other.append(file)
+
+        # randomize image array
+        random.shuffle(images)
+
+        # determine correct image
+        correct_key = -1
+        for image in images:
+            if image.__contains__("1"):
+                correct_key = images.index(image) + 1
+
+        # place images on screen
+        converted_images = []
+        for image in images:
+            img = pygame.image.load(trial_directory + f"\\{trial[0]}\\{trial[1]}\\{image}")
+            img = pygame.transform.scale(img, (screen_size[0]/IMGAGE_SCALING[0], screen_size[1]/IMGAGE_SCALING[1]))
+            img.convert()
+            converted_images.append(img)
+
+        screen.fill(WHITE)
+        screen.blit(converted_images[0], (7*screen_size[0]/25, screen_size[1]/3))
+        screen.blit(converted_images[1], (13*screen_size[0]/25, screen_size[1]/3))
+
+        screen.blit(text_L, (9.3*screen_size[0]/25, 1.75*screen_size[1]/3))
+        screen.blit(text_R, (15.3*screen_size[0]/25, 1.75*screen_size[1]/3))
+
+        # display screen
+        pygame.display.update()
+
+        # play audio file
+        audio_player.play(trial_directory + f"\\{trial[0]}\\{trial[1]}\\{audio[0]}")
+
+        # Record start time
+        start_time = time.time()
+
+        # wait for user input
+        response = None
+        while response not in key_mapping:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                elif event.type == pygame.KEYDOWN:
+                    response = event.key
+
+        # record reaction time
+        reaction_time = time.time() - start_time
+        average_reaction_time += reaction_time
+
+        # check for correct selection
+        selected_image = key_mapping.get(response)
+        if selected_image == correct_key:
+            answer = "correct"
+            accuracy += 1
+        else:
+            answer = "incorrect"
+            accuracy += 0
+        trials_completed += 1
+
+        # display feedback
+        print(f"Trial {trial} - Reaction Time: {reaction_time:.2f}s, {answer}")
+        data = [f"{trial}", f"{reaction_time:.2f}s", f"{answer}"]
+        worksheet.append(data)
+
+        # stop audio if still playing
+        audio_player.stop()
+
+        # 2 second hand delay thing
+        screen.fill(WHITE)
+        hands_rect = hands.get_rect(center=(screen_size[0]/2, screen_size[1]/2))
+        screen.blit(hands, hands_rect)
+        pygame.display.update()
+        time.sleep(2)
+
+    ## end loop for NUM_TRIALS
+    workbook.save(RESULTS_FILE)
 
 
 def run_4_option_trials():
