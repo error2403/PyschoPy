@@ -34,8 +34,14 @@ class Audio:
 
 # game constants
 IS_TWO_OPTIONS = False      # this swaps between 2 option trials and 4 option trials
+
+# NUM_FOLDER_X_TRIALS ex: [12, 7] --> pull 12 trials from first folder and 7 trials from second folder
+if IS_TWO_OPTIONS:
+    NUM_FOLDER_X_TRIALS = [31,13] # folder setup for 2 option
+else:
+    NUM_FOLDER_X_TRIALS = [2,1,1,1] # folder setup for 4 option
+
 IMGAGE_SCALING = (5,5)
-NUM_FOLDER_X_TRIALS = [2,1,1,1]
 NUM_TRIALS = sum(NUM_FOLDER_X_TRIALS)
 ALLOW_DUPLICATES = False
 RESULTS_FILE = 'results.xlsx'
@@ -121,12 +127,16 @@ def initialize():
     else:
         trial_directory = game_directory + "\\4_option_trials"
 
-    trial_folders = os.listdir(trial_directory)
+    trial_data = os.listdir(trial_directory)
 
-    for folder in trial_folders:
-        trial_dict: Dict[str, List[str]] = {}
-        trial_dict[folder] = os.listdir(trial_directory + f"\\{folder}")
-        all_trials.append(trial_dict)
+    for item in trial_data:
+        if os.path.isdir(trial_directory + f"\\{item}"):
+            print("is dir: " + item)
+            trial_dict: Dict[str, List[str]] = {}
+            trial_dict[item] = os.listdir(trial_directory + f"\\{item}")
+            all_trials.append(trial_dict)
+        else:
+            print("is not dir: " + item)
 
     # generate list of trials to run
     for folder_num, num_trials in enumerate(NUM_FOLDER_X_TRIALS):
@@ -170,9 +180,10 @@ def thank_you():
     """
     # load global variables
     global screen
+    global trial_directory
 
     # display thank you screen
-    img = pygame.image.load("thank_you.png")
+    img = pygame.image.load(trial_directory + "\\thank_you.png")
     img = pygame.transform.scale(img, (screen_size[0], screen_size[1]))
     img.convert()
     
@@ -202,6 +213,7 @@ def audio_tuning():
     # load global variables
     global screen
     global audio_player
+    global trial_directory
 
     # configure audio tuning screen
     font = pygame.font.SysFont(None, FONT_SIZE)
@@ -229,7 +241,7 @@ def audio_tuning():
     output.disable()  # Act as label instead of textbox
 
     # loop audio sounds
-    audio_player.play('sampleaudio.wav', -1)
+    audio_player.play(trial_directory + '\\audio_tuning.wav', -1)
 
     # wait for user to press space
     response = None
@@ -263,9 +275,10 @@ def instructions():
     """
     # load global variables
     global screen
+    global trial_directory
 
     # display instructions screen
-    img = pygame.image.load("instructions.png")
+    img = pygame.image.load(trial_directory + "\\instructions.png")
     img = pygame.transform.scale(img, (screen_size[0], screen_size[1]))
     img.convert()
     
@@ -288,7 +301,19 @@ def instructions():
 
 
 def run_trials():
+    if IS_TWO_OPTIONS:
+        run_2_option_trials()
+    else:
+        run_4_option_trials()
+
+
+def run_2_option_trials():
+    pass
+
+
+def run_4_option_trials():
     """
+    runs the PsychoPy 4 option test trials.
     """
     # load global variables
     global key_mapping
